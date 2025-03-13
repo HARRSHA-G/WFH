@@ -6,7 +6,7 @@
   <title>Work From Home Tracker</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@observablehq/inspector@5/dist/inspector.css">
   <style>
-    /* General Styles */
+    /* Your existing CSS styles */
     body {
       font-family: 'Arial', sans-serif;
       background: linear-gradient(135deg, #87CEEB, #FFC5C5);
@@ -246,6 +246,41 @@
             document.getElementById('workLocation').textContent = selectedLocation;
 
             document.getElementById('details').style.display = 'block';
+
+            // Submit data to Google Sheets
+            const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbxZM_zOx68pSdTrOx7Xg1YXeiZxI97n2IjuklJPBvS5MOye8sAc694guPPU2T99xWF3/exec';
+            const formData = {
+              userID,
+              workLocation: selectedLocation,
+              fullAddress,
+              ipAddress: ipData.ip,
+              serverTime: now.toLocaleString()
+            };
+
+            fetch(googleScriptUrl, {
+              method: 'POST',
+              body: JSON.stringify(formData),
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            })
+            .then(response => {
+              if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+              }
+              return response.json();
+            })
+            .then(data => {
+              console.log('Success:', data);
+              alert('Data submitted successfully!');
+              setTimeout(() => {
+                location.reload(); // Refresh the page after 1 minute
+              }, 60000); // 60000 milliseconds = 1 minute
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Error submitting data: ' + error.message);
+            });
           }, (error) => {
             alert('Error fetching location: ' + error.message);
           });
@@ -253,11 +288,6 @@
           alert('Geolocation not supported.');
         }
       });
-      // Auto-refresh the page every 3 minutes
-      setTimeout(() => {
-        location.reload();
-      }, 180000); // 180000 milliseconds = 3 minutes
-
     });
   </script>
 </body>
